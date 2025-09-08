@@ -1,24 +1,55 @@
 # Basic Filter
 
-**One endpoint:** `POST /match`
+A Node.js/Express service that filters and matches nurses based on location, services, and availability.
 
-## Run
+## Quick Start
+
 ```bash
+# Install dependencies
 npm install
+
+# Setup environment
 cp .env.example .env
+
+# Start server (port 5001)
 npm start
 ```
 
-## Test
+## Endpoints
+
+### Health Check
 ```bash
-curl -s -X POST http://localhost:5001/match -H "content-type: application/json" -d '{
-  "city": "Tel Aviv",
-  "service": "Wound Care",
-  "start":"2025-07-28T09:00:00Z",
-  "end":"2025-07-28T12:00:00Z",
-  "lat":32.0853, "lng":34.7818, "radiusKm":20, "topK":3
-}'
+curl http://localhost:5001/health
+# Returns: {"ok":true}
 ```
+
+### Match Nurses
+```bash
+curl -X POST http://localhost:5001/match \
+  -H "content-type: application/json" \
+  -d '{
+    "city": "Tel Aviv",
+    "service": "Wound Care",
+    "start": "2025-07-28T09:00:00Z",
+    "end": "2025-07-28T12:00:00Z",
+    "lat": 32.0853,
+    "lng": 34.7818,
+    "radiusKm": 20,
+    "topK": 3
+  }'
+```
+
+### Interactive Demo
+Open in browser: http://localhost:5001/docs/demo.html
+
+## Testing
+
+Run smoke tests to verify all functionality:
+```bash
+npm run test:smoke
+```
+
+Test outputs are saved in `docs/run_*.json` for verification.
 
 ## Database Integration
 
