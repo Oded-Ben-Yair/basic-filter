@@ -2,6 +2,7 @@ import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { parse } from 'csv-parse/sync';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,9 +48,113 @@ export async function dbHealth() {
   }
 }
 
+// Helper to normalize service names from CSV treatment types
+function normalizeService(treatmentType) {
+  const serviceMap = {
+    'WOUND_TREATMENT': 'Wound Care',
+    'DIABETIC_WOUND_TREATMENT': 'Wound Care',
+    'DIFFICULT_WOUND_HEALING_TREATMENT': 'Wound Care',
+    'BURN_TREATMENT': 'Wound Care',
+    'MEDICATION': 'Medication',
+    'MEDICATION_ARRANGEMENT': 'Medication',
+    'PEDIATRICS': 'Pediatrics',
+    'BREASTFEEDING_CONSULTATION': 'Pediatrics',
+    'HOME_NEWBORN_VISIT': 'Pediatrics',
+    'DAY_NIGHT_CIRCUMCISION_NURSE': 'Day Night',
+    'HOSPITAL': 'Hospital',
+    'FOLLOW_UP_AFTER_SURGERY': 'Hospital',
+    'DEFAULT': 'General',
+    'BLOOD_TESTS': 'General',
+    'CATHETER_INSERTION_REPLACEMENT': 'General',
+    'CENTRAL_CATHETER_TREATMENT': 'General',
+    'ENEMA_UNDER_INSTRUCTION': 'General',
+    'ESCORTED_BY_NURSE': 'Home Care',
+    'FERTILITY_TREATMENTS': 'Home Care',
+    'GASTROSTOMY_CARE_FEEDING': 'Home Care',
+    'HANDLING_AND_TRACKING_METRICS': 'Home Care',
+    'HEALTHY_LIFESTYLE_GUIDANCE': 'Home Care'
+  };
+  return serviceMap[treatmentType] || 'General';
+}
+
+// Load city centroids
+let cityCentroids = {};
+try {
+  const centroidsPath = path.join(__dirname, '..', 'sample_data', 'city_centroids_il.json');
+  if (fs.existsSync(centroidsPath)) {
+    cityCentroids = JSON.parse(fs.readFileSync(centroidsPath, 'utf-8'));
+  }
+} catch (e) {
+  console.warn('Could not load city centroids:', e.message);
+}
+
 // Unified fetch: return array of nurses with same shape as sample_data/nurses.json
 export async function loadNurses() {
   if (!USE_DB) {
+    // Check for CSV first
+    const csvPath = path.join(__dirname, '..', 'sample_data', 'nurses.csv');
+    if (fs.existsSync(csvPath)) {
+      let csvContent = fs.readFileSync(csvPath, 'utf-8');
+      // Remove BOM if present
+      if (csvContent.charCodeAt(0) === 0xFEFF) {
+        csvContent = csvContent.slice(1);
+      }
+      const records = parse(csvContent, {
+        columns: true,
+        skip_empty_lines: true,
+        bom: true
+      });
+      
+      // Group by nurse_id and aggregate data
+      const nurseMap = {};
+      for (const row of records) {
+        const id = row.nurse_id;
+        if (!id) continue;
+        
+        // Only process active nurses
+        if (row.status === 'CANCELLED' || row.is_active !== '1') continue;
+        
+        const city = row.municipality;
+        const service = normalizeService(row.name); // 'name' column contains treatment type
+        
+        if (!nurseMap[id]) {
+          // Look up coordinates from centroids
+          const coords = cityCentroids[city] || { lat: 31.4118, lng: 35.0818 };
+          if (!cityCentroids[city] && city) {
+            console.log(`No coordinates for city: ${city}, using default`);
+          }
+          
+          nurseMap[id] = {
+            id,
+            name: `Nurse ${id.substring(0, 8)}`, // Use partial ID as name
+            gender: row.gender,
+            city: city || 'Unknown',
+            lat: coords.lat,
+            lng: coords.lng,
+            services: new Set(),
+            rating: 3.5 + Math.random() * 1.5, // Random rating 3.5-5.0
+            reviewsCount: Math.floor(Math.random() * 100) + 5,
+            availability: {
+              mon: [{ start: "08:00", end: "17:00" }],
+              tue: [{ start: "08:00", end: "17:00" }],
+              wed: [{ start: "08:00", end: "17:00" }],
+              thu: [{ start: "08:00", end: "17:00" }],
+              fri: [{ start: "08:00", end: "14:00" }]
+            }
+          };
+        }
+        
+        nurseMap[id].services.add(service);
+      }
+      
+      // Convert to array and services Set to array
+      return Object.values(nurseMap).map(nurse => ({
+        ...nurse,
+        services: Array.from(nurse.services)
+      }));
+    }
+    
+    // Fallback to JSON
     const json = fs.readFileSync(path.join(__dirname, '..', 'sample_data', 'nurses.json'), 'utf-8');
     return JSON.parse(json);
   }

@@ -1,0 +1,12 @@
+{"scenarios": [
+{"scenario":"A","label":"Tel Aviv wound care nurses","count":3,"latency_ms":3534,"schema_valid":"true","first_3_ids":"86ae65f9-8ee8-4a59-b0f0-abbbd88339a8, 408e1cb8-d5ac-4c29-99f8-9719ed41c25e, fa6a96c5-e46e-47db-8fbe-cc3494c6ab08","mean_score":4.481025245856859},
+{"scenario":"B","label":"Haifa urgent medication","count":0,"latency_ms":61,"schema_valid":"true","first_3_ids":"","mean_score":0},
+{"scenario":"C","label":"Ramat-Gan pediatrics with time window","count":0,"latency_ms":60,"schema_valid":"true","first_3_ids":"","mean_score":0},
+{"scenario":"D","label":"Bat-Yam general nurses (limited radius)","count":3,"latency_ms":46,"schema_valid":"true","first_3_ids":"deb4d10e-ca57-43c2-8907-5d916d6afd01, 59398c0c-9639-4f51-a37b-19ae53763b99, 4983d84e-9875-4322-9ea4-ac9723727925","mean_score":4.541332174716996},
+{"scenario":"E","label":"Kiryat Tivon day/night care","count":0,"latency_ms":46,"schema_valid":"true","first_3_ids":"","mean_score":0},
+{"scenario":"F","label":"Tel Aviv hospital services (small radius)","count":0,"latency_ms":42,"schema_valid":"true","first_3_ids":"","mean_score":0},
+{"scenario":"G","label":"Jerusalem home care services","count":0,"latency_ms":41,"schema_valid":"true","first_3_ids":"","mean_score":0},
+{"scenario":"H","label":"Beer Sheva afternoon availability","count":2,"latency_ms":51,"schema_valid":"true","first_3_ids":"1ea503f2-55f0-4d82-b4bf-0e417170f366, 3427d8f5-b613-4644-b846-f1485f7038bd","mean_score":3.628908929553485},
+{"scenario":"I","label":"Netanya urgent wound care","count":0,"latency_ms":42,"schema_valid":"true","first_3_ids":"","mean_score":0},
+{"scenario":"J","label":"Ashdod morning medication","count":0,"latency_ms":41,"schema_valid":"true","first_3_ids":"","mean_score":0}
+]}
