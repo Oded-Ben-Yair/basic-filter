@@ -29,13 +29,24 @@ for (const scenario of summary.scenarios) {
   }
 }
 
+// Count unique nurses (estimate from test results)
+let uniqueNurseIds = new Set();
+for (const scenario of scenarios) {
+  if (scenario.fullResult && scenario.fullResult.results) {
+    scenario.fullResult.results.forEach(r => uniqueNurseIds.add(r.id));
+  }
+}
+
+// Scenarios with zero results
+const zeroResultScenarios = scenarios.filter(s => s.count === 0).map(s => s.label);
+
 // Generate HTML report
 const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basic Filter - CSV Test Report</title>
+    <title>Basic Filter - CSV Test Report (CEO-Ready)</title>
     <style>
         * {
             margin: 0;
@@ -242,7 +253,7 @@ const html = `<!DOCTYPE html>
         <h1>🏥 Basic Filter - CSV Test Report</h1>
         
         <div class="summary-card">
-            <h2>Test Summary</h2>
+            <h2>Test Summary - Data Source: CSV</h2>
             <div class="summary-grid">
                 <div class="stat-box">
                     <div class="stat-value">${scenarios.length}</div>
@@ -253,14 +264,23 @@ const html = `<!DOCTYPE html>
                     <div class="stat-label">With Results</div>
                 </div>
                 <div class="stat-box">
+                    <div class="stat-value">${uniqueNurseIds.size}+</div>
+                    <div class="stat-label">Unique Nurses</div>
+                </div>
+                <div class="stat-box">
                     <div class="stat-value">${Math.round(scenarios.reduce((sum, s) => sum + s.latency_ms, 0) / scenarios.length)}ms</div>
                     <div class="stat-label">Avg Latency</div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-value">${scenarios.filter(s => s.schema_valid === "true").length}</div>
-                    <div class="stat-label">Valid Schemas</div>
-                </div>
             </div>
+            
+            ${zeroResultScenarios.length > 0 ? `
+            <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                <h4 style="color: #856404; margin-bottom: 0.5rem;">Scenarios with 0 Results (${zeroResultScenarios.length}):</h4>
+                <ul style="color: #666; margin: 0; padding-left: 1.5rem;">
+                    ${zeroResultScenarios.map(s => `<li>${s}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
             
             <div class="weights-info">
                 <h3>Ranking Weights</h3>

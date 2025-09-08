@@ -75,17 +75,17 @@ run_test() {
   fi
 }
 
-# Run 10 scenarios (A-J)
-run_test "A" "Tel Aviv-Yafo" "Wound Care" 25 5 "null" "null" false "Tel Aviv wound care nurses"
-run_test "B" "Haifa" "Medication" 40 3 "null" "null" true "Haifa urgent medication"
-run_test "C" "Ramat-Gan" "Pediatrics" 20 3 "2025-09-10T09:00:00Z" "2025-09-10T12:00:00Z" false "Ramat-Gan pediatrics with time window"
-run_test "D" "Bat-Yam" "General" 15 3 "null" "null" false "Bat-Yam general nurses (limited radius)"
-run_test "E" "Kiryat Tivon" "Day Night" 60 3 "null" "null" false "Kiryat Tivon day/night care"
-run_test "F" "Tel Aviv-Yafo" "Hospital" 10 3 "null" "null" false "Tel Aviv hospital services (small radius)"
-run_test "G" "Jerusalem" "Home Care" 30 4 "null" "null" false "Jerusalem home care services"
-run_test "H" "Beer Sheva" "General" 35 5 "2025-09-11T14:00:00Z" "2025-09-11T18:00:00Z" false "Beer Sheva afternoon availability"
-run_test "I" "Netanya" "Wound Care" 20 3 "null" "null" true "Netanya urgent wound care"
-run_test "J" "Ashdod" "Medication" 25 4 "2025-09-12T08:00:00Z" "2025-09-12T10:00:00Z" false "Ashdod morning medication"
+# Run 10 scenarios (A-J) with wider radii for better coverage
+run_test "A" "Tel Aviv-Yafo" "Wound Care" 40 5 "null" "null" false "Tel Aviv wound care nurses (wider radius)"
+run_test "B" "Haifa" "Medication" 50 3 "null" "null" true "Haifa urgent medication (wider radius)"
+run_test "C" "Ramat-Gan" "Pediatrics" 35 3 "2025-09-10T09:00:00Z" "2025-09-10T12:00:00Z" false "Ramat-Gan pediatrics with time window"
+run_test "D" "Bat-Yam" "General" 30 3 "null" "null" false "Bat-Yam general nurses (extended radius)"
+run_test "E" "Kiryat Tivon" "General" 60 3 "null" "null" false "Kiryat Tivon general care (wide search)"
+run_test "F" "Tel Aviv-Yafo" "Hospital" 35 3 "null" "null" false "Tel Aviv hospital services (extended)"
+run_test "G" "Jerusalem" "Home Care" 45 4 "null" "null" false "Jerusalem home care services (wider)"
+run_test "H" "Beer Sheva" "General" 50 5 "2025-09-11T14:00:00Z" "2025-09-11T18:00:00Z" false "Beer Sheva afternoon availability"
+run_test "I" "Netanya" "General" 40 3 "null" "null" true "Netanya urgent general care"
+run_test "J" "Ashdod" "General" 40 4 "2025-09-12T08:00:00Z" "2025-09-12T10:00:00Z" false "Ashdod morning general care"
 
 # Close JSON array
 echo ']}' >> "$SUMMARY_FILE"

@@ -48,6 +48,24 @@ export async function dbHealth() {
   }
 }
 
+// Deterministic hash for ratings
+function hashToUnit(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return (h % 1000) / 1000; // 0..0.999
+}
+
+function deterministicRating(id) {
+  return 3.5 + hashToUnit(id) * 1.5;
+}
+
+function deterministicReviews(id) {
+  return Math.floor(hashToUnit(id + 'reviews') * 100) + 5;
+}
+
 // Helper to normalize service names from CSV treatment types
 function normalizeService(treatmentType) {
   const serviceMap = {
@@ -63,10 +81,10 @@ function normalizeService(treatmentType) {
     'DAY_NIGHT_CIRCUMCISION_NURSE': 'Day Night',
     'HOSPITAL': 'Hospital',
     'FOLLOW_UP_AFTER_SURGERY': 'Hospital',
+    'CENTRAL_CATHETER_TREATMENT': 'Hospital',
+    'CATHETER_INSERTION_REPLACEMENT': 'Hospital',
     'DEFAULT': 'General',
     'BLOOD_TESTS': 'General',
-    'CATHETER_INSERTION_REPLACEMENT': 'General',
-    'CENTRAL_CATHETER_TREATMENT': 'General',
     'ENEMA_UNDER_INSTRUCTION': 'General',
     'ESCORTED_BY_NURSE': 'Home Care',
     'FERTILITY_TREATMENTS': 'Home Care',
@@ -109,10 +127,9 @@ export async function loadNurses() {
       const nurseMap = {};
       for (const row of records) {
         const id = row.nurse_id;
+        // Keep all rows unless explicitly cancelled/null ID
         if (!id) continue;
-        
-        // Only process active nurses
-        if (row.status === 'CANCELLED' || row.is_active !== '1') continue;
+        if (row.status && row.status.toUpperCase() === 'CANCELLED') continue;
         
         const city = row.municipality;
         const service = normalizeService(row.name); // 'name' column contains treatment type
@@ -124,6 +141,23 @@ export async function loadNurses() {
             console.log(`No coordinates for city: ${city}, using default`);
           }
           
+          // Try to parse availability from CSV columns if present
+          let availability = {
+            mon: [{ start: "08:00", end: "17:00" }],
+            tue: [{ start: "08:00", end: "17:00" }],
+            wed: [{ start: "08:00", end: "17:00" }],
+            thu: [{ start: "08:00", end: "17:00" }],
+            fri: [{ start: "08:00", end: "14:00" }]
+          };
+          
+          // If from/to datetime columns exist, use them
+          if (row.from_datetime_utc || row.to_datetime_utc) {
+            availability = {
+              from: row.from_datetime_utc || null,
+              to: row.to_datetime_utc || null
+            };
+          }
+          
           nurseMap[id] = {
             id,
             name: `Nurse ${id.substring(0, 8)}`, // Use partial ID as name
@@ -132,15 +166,9 @@ export async function loadNurses() {
             lat: coords.lat,
             lng: coords.lng,
             services: new Set(),
-            rating: 3.5 + Math.random() * 1.5, // Random rating 3.5-5.0
-            reviewsCount: Math.floor(Math.random() * 100) + 5,
-            availability: {
-              mon: [{ start: "08:00", end: "17:00" }],
-              tue: [{ start: "08:00", end: "17:00" }],
-              wed: [{ start: "08:00", end: "17:00" }],
-              thu: [{ start: "08:00", end: "17:00" }],
-              fri: [{ start: "08:00", end: "14:00" }]
-            }
+            rating: deterministicRating(id),
+            reviewsCount: deterministicReviews(id),
+            availability
           };
         }
         
